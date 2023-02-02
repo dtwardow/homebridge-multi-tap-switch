@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "MultiTapSwitch",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,7 +9,19 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "Scene Switcher"
+      },
+      "numScenes": {
+        "title": "Number of Scenes",
+        "type": "number",
+        "required": true,
+        "default": 4
+      },
+      "secondsToKeep": {
+        "title": "Holding Time",
+        "type": "number",
+        "required": true,
+        "default": 5
       }
     }
   }
