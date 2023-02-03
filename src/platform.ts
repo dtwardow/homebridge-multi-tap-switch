@@ -1,18 +1,31 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { DeviceAccessory } from './accessory';
+import { DeviceAccessory } from './platformAccessory';
+
+// Necessary definitions for custom characteristics!
+import ConfiguredScenes from './types/characteristicConfiguredScenes';
+let IConfiguredScenes;
+import TriggerTimeout from './types/characteristicTimeout';
+let ITriggerTimeout;
+
+interface PlatformConfigData {
+  Name: string;
+  MaxNumScenes: number;
+  SecondsBeforeReset: number;
+}
 
 /**
  * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
  */
 export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+  public readonly Characteristic: typeof Characteristic & typeof IConfiguredScenes & typeof ITriggerTimeout;
 
-  // this is used to track restored cached accessories
+  private readonly CharacteristicConfiguredScenes;
+  private readonly CharacteristicTriggerTimeout;
+
+  // Track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
   constructor(
@@ -22,21 +35,24 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   ) {
     this.log.debug('Finished initializing platform:', this.config.name);
 
-    // When this event is fired it means Homebridge has restored all cached accessories from disk.
-    // Dynamic Platform plugins should only register new accessories after this event was fired,
-    // in order to ensure they weren't added to homebridge already. This event can also be used
-    // to start discovery of new accessories.
+    this.CharacteristicConfiguredScenes = ConfiguredScenes(this.api);
+    IConfiguredScenes = this.CharacteristicConfiguredScenes;
+    this.CharacteristicTriggerTimeout = TriggerTimeout(this.api);
+    ITriggerTimeout = this.CharacteristicTriggerTimeout;
+
     this.api.on('didFinishLaunching', () => {
-      log.debug('Executed didFinishLaunching callback');
-      // run the method to discover / register your devices as accessories
+      log.debug('Discover/Register Devices ...');
       this.discoverDevices();
     });
+
+    this.Characteristic = Object.defineProperty(this.api.hap.Characteristic,
+      'ConfiguredScenes',
+      {value: this.CharacteristicConfiguredScenes});
+    this.Characteristic = Object.defineProperty(this.api.hap.Characteristic,
+      'TriggerTimeout',
+      {value: this.CharacteristicTriggerTimeout});
   }
 
-  /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
-   */
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
 
@@ -44,64 +60,52 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
     this.accessories.push(accessory);
   }
 
-  defineUuid(name: string | undefined, serial: string): string {
+  defineUuid(name: string | undefined, serial = 'UNDEF'): string {
     return this.api.hap.uuid.generate(name + '_' + serial);
   }
 
-  /**
-   * This is an example method showing how to register discovered accessories.
-   * Accessories must only be registered once, previously created accessories
-   * must not be registered again to prevent "duplicate UUID" errors.
-   */
   discoverDevices() {
+    const uuid = this.defineUuid(this.config.name, '0');
 
-    // EXAMPLE ONLY
-    // A real plugin you would discover accessories from the local network, cloud services
-    // or a user-defined array in the platform config.
-
-    // generate a unique id for the accessory this should be generated from
-    // something globally unique, but constant, for example, the device serial
-    // number or MAC address
-    //const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
-    const uuid = this.defineUuid(this.config.name, "0");
+    const accessoryConfig: PlatformConfigData = {
+      Name: this.config.name ? this.config.name : 'Scene Switch',
+      MaxNumScenes: this.config.numScenes,
+      SecondsBeforeReset: this.config.secondsToKeep,
+    };
 
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
     const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
     if (existingAccessory) {
-      // the accessory already exists
+      // Accessory already exists
       this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
       // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
       // existingAccessory.context.device = device;
       // this.api.updatePlatformAccessories([existingAccessory]);
+      if (existingAccessory.context.config !== accessoryConfig) {
+        existingAccessory.context.config = accessoryConfig;
+        this.api.updatePlatformAccessories([existingAccessory]);
+      }
 
-      // create the accessory handler for the restored accessory
-      // this is imported from `accessoryInput.ts`
-      new DeviceAccessory(this, existingAccessory, this.config.numScenes);
-
-      // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-      // remove platform accessories when no longer present
-      // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-      // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+      // Create the accessory handler for the restored accessory
+      // This is imported from `platformAccessory.ts`
+      new DeviceAccessory(this, existingAccessory);
     } else {
-      // the accessory does not yet exist, so we need to create it
-      this.log.info('Adding INPUT:', this.config.name);
+      // Accessory does not yet exist, so we need to create it
+      this.log.info('Adding INPUT:', accessoryConfig.Name, ' / Max ',
+        accessoryConfig.MaxNumScenes, ' scenes / ', accessoryConfig.SecondsBeforeReset, ' seconds before reset');
 
-      // create a new accessory
-      const accessory = new this.api.platformAccessory(<string>this.config.name, uuid);
+      // Create new accessory
+      const accessory = new this.api.platformAccessory(accessoryConfig.Name, uuid);
 
-      // store a copy of the device object in the `accessory.context`
-      // the `context` property can be used to store any data about the accessory you may need
-      accessory.context.device = {
-        "numScenes": this.config.numScenes,
-        "keepSeconds": this.config.keepSeconds
-      };
+      // Store config in accessory context
+      accessory.context.config = accessoryConfig;
 
-      // create the accessory handler for the newly create accessory
-      // this is imported from `accessoryInput.ts`
-      new DeviceAccessory(this, accessory, this.config.numScenes);
+      // Create the accessory handler for the new  accessory
+      // This is imported from `platformAccessory.ts`
+      new DeviceAccessory(this, accessory);
 
       // link the accessory to your platform
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
