@@ -158,8 +158,12 @@ export class DeviceAccessory {
       if (this.SwitchResetTimer) {
         clearTimeout(this.SwitchResetTimer);
       }
-      // Start the reset timer
-      this.SwitchResetTimer = setTimeout(this.resetTrigger.bind(this), this.State.triggerTimeout * 1000);
+
+      // Start the reset timer, if paramter is greater than 0.
+      // Otherwise, do nothing.
+      if (this.State.triggerTimeout > 0) {
+        this.SwitchResetTimer = setTimeout(this.resetTrigger.bind(this), this.State.triggerTimeout * 1000);
+      }
 
       // Trigger Scene
       this.triggerNext();
