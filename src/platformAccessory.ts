@@ -2,6 +2,7 @@ import {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
 import {MultiTapSwitchPlatform} from './platform';
 import {AccessoryState, DeviceConfig} from './config';
 import {Logging} from './helper/logger';
+import {VERSION} from './settings';
 
 /**
  * Platform Accessory
@@ -42,6 +43,7 @@ export class DeviceAccessory {
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'TippyTapper')
       .setCharacteristic(this.platform.Characteristic.Model, 'SceneSwitch')
+      .setCharacteristic(this.platform.Characteristic.Version, VERSION)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.UUID);
 
 
