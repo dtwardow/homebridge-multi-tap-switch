@@ -10,13 +10,8 @@
         "title": "Platform Name",
         "type": "string",
         "required": true,
+        "minLength": 3,
         "default": "MultiTapSwitch"
-      },
-      "enabled": {
-        "title": "Enable",
-        "type": "boolean",
-        "required": true,
-        "default": true
       },
       "devices": {
         "type": "array",
