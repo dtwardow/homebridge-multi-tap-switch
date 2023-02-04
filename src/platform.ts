@@ -83,7 +83,7 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
         // existingAccessory.context.device = device;
         // this.api.updatePlatformAccessories([existingAccessory]);
         if (existingAccessory.context.config !== device) {
-          this.log.info('Update Accessory ->', device.name);
+          this.log.debug('Update Accessory ->', device.name);
           existingAccessory.context.config = device;
           this.api.updatePlatformAccessories([existingAccessory]);
         }
