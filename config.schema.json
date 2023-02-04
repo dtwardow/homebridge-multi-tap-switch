@@ -53,7 +53,7 @@
             "resetAfterSwitchOff": {
               "title": "Reset when switch turned `Off`",
               "type": "boolean",
-              "description": "Reset the switch and trigger index, when the trigger switch is turned `Off` (independent from timeout)",
+              "description": "Reset the switch and trigger index, when the trigger switch is turned <code>Off</code> (independent from timeout)",
               "required": true,
               "default": false
             },

@@ -21,8 +21,8 @@ export class Logging {
 
   log(...parts: any) {
     this.isDebug ?
-      this.logHandler.debug(this.msgPrefix(), ...parts) :
-      this.logHandler.info(this.msgPrefix(), ...parts);
+      this.logHandler.info(this.msgPrefix(), ...parts) :
+      this.logHandler.debug(this.msgPrefix(), ...parts);
   }
 
   warn = (...parts: any) => this.logHandler.warn(this.msgPrefix(), ...parts);
