@@ -1,10 +1,5 @@
 import {PlatformConfig} from 'homebridge';
 
-export interface PluginBaseConfig {
-  Name: string;
-  Enable: boolean;
-}
-
 export interface PluginDeviceConfig {
   readonly name: string;
   readonly numberConfiguredScenes: number;
@@ -15,12 +10,10 @@ export interface PluginDeviceConfig {
 
 export class PluginConfig {
   readonly Name: string;
-  readonly Enable: boolean;
   readonly Devices: PluginDeviceConfig[];
 
   constructor(config: PlatformConfig) {
     this.Name = config.name!;
-    this.Enable = config.enable;
 
     this.Devices = config.devices;
   }
