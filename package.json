@@ -2,15 +2,15 @@
   "private": false,
   "displayName": "Homebridge Multi-Tap-Switch",
   "name": "homebridge-multi-tap-switch",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A configurable multi-tap switch for i.e. switching scenes",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dtwardow/homebridge-multitap-switch.git"
+    "url": "git+https://github.com/dtwardow/homebridge-multi-tap-switch.git"
   },
   "bugs": {
-    "url": "https://github.com/dtwardow/homebridge-multitap-switch/issues"
+    "url": "https://github.com/dtwardow/homebridge-multi-tap-switch/issues"
   },
   "engines": {
     "node": ">=14.18.1",
@@ -37,6 +37,6 @@
     "ts-node": "^10.3.0",
     "typescript": "^4.4.4"
   },
-  "homepage": "https://github.com/dtwardow/homebridge-multitap-switch#readme",
+  "homepage": "https://github.com/dtwardow/homebridge-multi-tap-switch#readme",
   "author": "Dennis Twardowsky <twardowsky@gmail.com>"
 }
