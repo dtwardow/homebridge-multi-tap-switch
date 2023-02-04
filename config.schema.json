@@ -2,53 +2,67 @@
   "pluginAlias": "MultiTapSwitch",
   "pluginType": "platform",
   "singular": true,
+  "headerDisplay": "Configure the required multi-tap-switches here.",
   "schema": {
-    "name": {
-      "title": "Platform Name",
-      "type": "string",
-      "required": "true",
-      "default": "MultiTapSwitch"
-    },
-    "enabled": {
-      "title": "Enable",
-      "type": "boolean",
-      "required": true,
-      "default": true
-    },
-    "devices": {
-      "type": "array",
-      "items": {
-        "title": "Switch",
-        "type": "object",
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string",
-            "required": true
-          },
-          "numberConfiguredScenes": {
-            "title": "Max. Scenes",
-            "type": "number",
-            "required": true,
-            "default": 5
-          },
-          "triggerTimeout": {
-            "title": "Reset Timeout",
-            "type": "number",
-            "required": true,
-            "default": 10
-          },
-          "resetAfterSwitchOff": {
-            "title": "Reset after Switch-Off",
-            "type": "boolean",
-            "required": true,
-            "default": false
-          },
-          "logging": {
-            "title": "Log state changes",
-            "type": "boolean",
-            "required": true,
-            "default": false
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "required": true,
+        "default": "MultiTapSwitch"
+      },
+      "enabled": {
+        "title": "Enable",
+        "type": "boolean",
+        "required": true,
+        "default": true
+      },
+      "devices": {
+        "type": "array",
+        "items": {
+          "title": "Switch",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "description": "Name of the switch shown in the Home App",
+              "required": true,
+              "minLength": 3,
+              "placeholder": "Multi Tap Switch"
+            },
+            "numberConfiguredScenes": {
+              "title": "Max. Scenes",
+              "type": "number",
+              "description": "Maximum number of configurable programmable switches.<br>The number of really used switches can be changed during runtime.",
+              "required": true,
+              "default": 5,
+              "minimum": 1,
+              "maximum": 10
+            },
+            "triggerTimeout": {
+              "title": "Reset Timeout",
+              "type": "number",
+              "description": "Seconds, after which the switch and trigger index is reset (<code>0 = disabled</code>).",
+              "required": true,
+              "default": 10,
+              "minimum": 0,
+              "maximum": 30
+            },
+            "resetAfterSwitchOff": {
+              "title": "Reset when switch turned `Off`",
+              "type": "boolean",
+              "description": "Reset the switch and trigger index, when the trigger switch is turned `Off` (independent from timeout)",
+              "required": true,
+              "default": false
+            },
+            "logging": {
+              "title": "Log state changes",
+              "type": "boolean",
+              "required": true,
+              "default": false
+            }
           }
         }
       }
