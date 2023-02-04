@@ -9,6 +9,6 @@ export const PLATFORM_NAME = 'MultiTapSwitch';
 /**
  * This must match the name of your plugin as defined the package.json
  */
-export const PLUGIN_NAME = 'homebridge-multitap-switch';
+export const PLUGIN_NAME = 'homebridge-multi-tap-switch';
 
 export const VERSION = package_config.version;
