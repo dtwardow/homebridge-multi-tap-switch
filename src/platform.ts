@@ -65,50 +65,52 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   }
 
   discoverDevices() {
-    const uuid = this.defineUuid(this.config.name, '0');
+    for (let i = 0; i < this.config.devices.length; i++) {
+      const accessoryConfig: PlatformConfigData = {
+        Name: this.config.devices[i].name,
+        MaxNumScenes: this.config.devices[i].numScenes,
+        SecondsBeforeReset: this.config.devices[i].secondsToKeep,
+      };
 
-    const accessoryConfig: PlatformConfigData = {
-      Name: this.config.name ? this.config.name : 'Scene Switch',
-      MaxNumScenes: this.config.numScenes,
-      SecondsBeforeReset: this.config.secondsToKeep,
-    };
+      const uuid = this.defineUuid(accessoryConfig.Name, '0');
 
-    // see if an accessory with the same uuid has already been registered and restored from
-    // the cached devices we stored in the `configureAccessory` method above
-    const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+      // see if an accessory with the same uuid has already been registered and restored from
+      // the cached devices we stored in the `configureAccessory` method above
+      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
-    if (existingAccessory) {
-      // Accessory already exists
-      this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+      if (existingAccessory) {
+        // Accessory already exists
+        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-      // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-      // existingAccessory.context.device = device;
-      // this.api.updatePlatformAccessories([existingAccessory]);
-      if (existingAccessory.context.config !== accessoryConfig) {
-        existingAccessory.context.config = accessoryConfig;
-        this.api.updatePlatformAccessories([existingAccessory]);
+        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+        // existingAccessory.context.device = device;
+        // this.api.updatePlatformAccessories([existingAccessory]);
+        if (existingAccessory.context.config !== accessoryConfig) {
+          existingAccessory.context.config = accessoryConfig;
+          this.api.updatePlatformAccessories([existingAccessory]);
+        }
+
+        // Create the accessory handler for the restored accessory
+        // This is imported from `platformAccessory.ts`
+        new DeviceAccessory(this, existingAccessory);
+      } else {
+        // Accessory does not yet exist, so we need to create it
+        this.log.info('Adding INPUT:', accessoryConfig.Name, ' / Max ',
+          accessoryConfig.MaxNumScenes, ' scenes / ', accessoryConfig.SecondsBeforeReset, ' seconds before reset');
+
+        // Create new accessory
+        const accessory = new this.api.platformAccessory(accessoryConfig.Name, uuid);
+
+        // Store config in accessory context
+        accessory.context.config = accessoryConfig;
+
+        // Create the accessory handler for the new  accessory
+        // This is imported from `platformAccessory.ts`
+        new DeviceAccessory(this, accessory);
+
+        // link the accessory to your platform
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
-
-      // Create the accessory handler for the restored accessory
-      // This is imported from `platformAccessory.ts`
-      new DeviceAccessory(this, existingAccessory);
-    } else {
-      // Accessory does not yet exist, so we need to create it
-      this.log.info('Adding INPUT:', accessoryConfig.Name, ' / Max ',
-        accessoryConfig.MaxNumScenes, ' scenes / ', accessoryConfig.SecondsBeforeReset, ' seconds before reset');
-
-      // Create new accessory
-      const accessory = new this.api.platformAccessory(accessoryConfig.Name, uuid);
-
-      // Store config in accessory context
-      accessory.context.config = accessoryConfig;
-
-      // Create the accessory handler for the new  accessory
-      // This is imported from `platformAccessory.ts`
-      new DeviceAccessory(this, accessory);
-
-      // link the accessory to your platform
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
   }
 }

@@ -3,25 +3,30 @@
   "pluginType": "platform",
   "singular": true,
   "schema": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "default": "Scene Switcher"
-      },
-      "numScenes": {
-        "title": "Number of Scenes",
-        "type": "number",
-        "required": true,
-        "default": 4
-      },
-      "secondsToKeep": {
-        "title": "Holding Time",
-        "type": "number",
-        "required": true,
-        "default": 5
+    "devices": {
+      "type": "array",
+      "items": {
+        "title": "Switch",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "required": true
+          },
+          "numScenes": {
+            "title": "Max. Scenes",
+            "type": "number",
+            "required": true,
+            "default": 5
+          },
+          "secondsToKeep": {
+            "title": "Reset Timeout",
+            "type": "number",
+            "required": true,
+            "default": 10
+          }
+        }
       }
     }
   }
