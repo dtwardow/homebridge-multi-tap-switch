@@ -1,11 +1,16 @@
 import {PlatformConfig} from 'homebridge';
 
+const DEFAULT_NUM_OF_CONFIGURED_SCENES = 5;
+const DEFAULT_TRIGGER_TIMEOUT = 10;
+const DEFAULT_RESET_AFTER_SWITCH_OFF = false;
+const DEFAULT_LOGGING = false;
+
 export interface PluginDeviceConfig {
   readonly name: string;
-  readonly numberConfiguredScenes: number;
-  readonly triggerTimeout: number;
-  readonly resetAfterSwitchOff: boolean;
-  readonly logging: boolean;
+  readonly numberConfiguredScenes?: number;
+  readonly triggerTimeout?: number;
+  readonly resetAfterSwitchOff?: boolean;
+  readonly logging?: boolean;
 }
 
 export class PluginConfig {
@@ -26,24 +31,28 @@ export class DeviceConfig {
     this.device = item;
   }
 
-  Name() {
+  Name(): string {
     return this.device.name;
   }
 
-  NumOfScenes() {
-    return this.device.numberConfiguredScenes;
+  NumOfScenes(): number {
+    return this.device.numberConfiguredScenes
+      || DEFAULT_NUM_OF_CONFIGURED_SCENES;
   }
 
-  TriggerTimeout() {
-    return this.device.triggerTimeout;
+  TriggerTimeout(): number {
+    return this.device.triggerTimeout
+      || DEFAULT_TRIGGER_TIMEOUT;
   }
 
-  isResetWhenOff() {
-    return this.device.resetAfterSwitchOff;
+  isResetWhenOff(): boolean {
+    return this.device.resetAfterSwitchOff
+      || DEFAULT_RESET_AFTER_SWITCH_OFF;
   }
 
-  isLogging() {
-    return this.device.logging;
+  isLogging(): boolean {
+    return this.device.logging
+      || DEFAULT_LOGGING;
   }
 }
 
@@ -55,8 +64,8 @@ export interface AccessoryState {
 
 export function initializeAccessoryState(initConfig: PluginDeviceConfig | AccessoryState): AccessoryState {
   return {
-    numberConfiguredScenes: initConfig.numberConfiguredScenes,
-    triggerTimeout: initConfig.triggerTimeout,
+    numberConfiguredScenes: initConfig.numberConfiguredScenes || DEFAULT_NUM_OF_CONFIGURED_SCENES,
+    triggerTimeout: initConfig.triggerTimeout || DEFAULT_TRIGGER_TIMEOUT,
     //nextSceneToTrigger: 0,
   };
 }
