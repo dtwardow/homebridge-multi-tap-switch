@@ -1,6 +1,9 @@
 # Ignore source code
 src
 
+# IDEA files
+.idea
+
 # ------------- Defaults ------------- #
 
 # gitHub actions
