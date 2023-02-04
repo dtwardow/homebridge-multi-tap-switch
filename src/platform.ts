@@ -6,21 +6,19 @@ import { DeviceAccessory } from './platformAccessory';
 // Necessary definitions for custom characteristics!
 import ConfiguredScenes from './types/characteristicConfiguredScenes';
 let IConfiguredScenes;
-import TriggerTimeout from './types/characteristicTimeout';
+import {initializeAccessoryState, PluginConfig} from './config';
 let ITriggerTimeout;
-
-interface PlatformConfigData {
-  Name: string;
-  MaxNumScenes: number;
-  SecondsBeforeReset: number;
-}
+import TriggerTimeout from './types/characteristicTimeout';
 
 /**
  * HomebridgePlatform
  */
 export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic & typeof IConfiguredScenes & typeof ITriggerTimeout;
+  public readonly Characteristic:
+    typeof Characteristic &
+    typeof IConfiguredScenes &
+    typeof ITriggerTimeout;
 
   private readonly CharacteristicConfiguredScenes;
   private readonly CharacteristicTriggerTimeout;
@@ -28,12 +26,16 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   // Track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
+  public readonly Config: PluginConfig;
+
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
-    this.log.debug('Finished initializing platform:', this.config.name);
+    this.Config = new PluginConfig(this.config);
+
+    this.log.debug('Finished initializing platform:', this.Config.Name);
 
     this.CharacteristicConfiguredScenes = ConfiguredScenes(this.api);
     IConfiguredScenes = this.CharacteristicConfiguredScenes;
@@ -54,7 +56,7 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   }
 
   configureAccessory(accessory: PlatformAccessory) {
-    this.log.info('Loading accessory from cache:', accessory.displayName);
+    this.log.info('Load cached Accessory:', accessory.displayName);
 
     // add the restored accessory to the accessories cache so we can track if it has already been registered
     this.accessories.push(accessory);
@@ -65,14 +67,9 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   }
 
   discoverDevices() {
-    for (let i = 0; i < this.config.devices.length; i++) {
-      const accessoryConfig: PlatformConfigData = {
-        Name: this.config.devices[i].name,
-        MaxNumScenes: this.config.devices[i].numScenes,
-        SecondsBeforeReset: this.config.devices[i].secondsToKeep,
-      };
-
-      const uuid = this.defineUuid(accessoryConfig.Name, '0');
+    const parsedConfig = new PluginConfig(this.config);
+    for (const device of parsedConfig.Devices) {
+      const uuid = this.defineUuid(device.name, '0');
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
@@ -85,8 +82,9 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         // existingAccessory.context.device = device;
         // this.api.updatePlatformAccessories([existingAccessory]);
-        if (existingAccessory.context.config !== accessoryConfig) {
-          existingAccessory.context.config = accessoryConfig;
+        if (existingAccessory.context.config !== device) {
+          this.log.info('Update Accessory ->', device.name);
+          existingAccessory.context.config = device;
           this.api.updatePlatformAccessories([existingAccessory]);
         }
 
@@ -95,14 +93,16 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
         new DeviceAccessory(this, existingAccessory);
       } else {
         // Accessory does not yet exist, so we need to create it
-        this.log.info('Adding INPUT:', accessoryConfig.Name, ' / Max ',
-          accessoryConfig.MaxNumScenes, ' scenes / ', accessoryConfig.SecondsBeforeReset, ' seconds before reset');
+        this.log.info('Add Device ->', device.name, '/',
+          'Max', device.numberConfiguredScenes, 'scenes /',
+          device.triggerTimeout, 'seconds before reset');
 
         // Create new accessory
-        const accessory = new this.api.platformAccessory(accessoryConfig.Name, uuid);
+        const accessory = new this.api.platformAccessory(device.name, uuid);
 
         // Store config in accessory context
-        accessory.context.config = accessoryConfig;
+        accessory.context.config = device;
+        accessory.context.persistent = initializeAccessoryState(device);
 
         // Create the accessory handler for the new  accessory
         // This is imported from `platformAccessory.ts`

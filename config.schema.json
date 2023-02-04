@@ -3,6 +3,18 @@
   "pluginType": "platform",
   "singular": true,
   "schema": {
+    "name": {
+      "title": "Platform Name",
+      "type": "string",
+      "required": "true",
+      "default": "MultiTapSwitch"
+    },
+    "enabled": {
+      "title": "Enable",
+      "type": "boolean",
+      "required": true,
+      "default": true
+    },
     "devices": {
       "type": "array",
       "items": {
@@ -14,17 +26,29 @@
             "type": "string",
             "required": true
           },
-          "numScenes": {
+          "numberConfiguredScenes": {
             "title": "Max. Scenes",
             "type": "number",
             "required": true,
             "default": 5
           },
-          "secondsToKeep": {
+          "triggerTimeout": {
             "title": "Reset Timeout",
             "type": "number",
             "required": true,
             "default": 10
+          },
+          "resetAfterSwitchOff": {
+            "title": "Reset after Switch-Off",
+            "type": "boolean",
+            "required": true,
+            "default": false
+          },
+          "logging": {
+            "title": "Log state changes",
+            "type": "boolean",
+            "required": true,
+            "default": false
           }
         }
       }
