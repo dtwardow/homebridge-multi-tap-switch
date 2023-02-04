@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "Multi-Tap Switch",
   "name": "homebridge-multitap-switch",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A configurable multi-tap switch for i.e. switching scenes",
   "license": "MIT",
   "repository": {
