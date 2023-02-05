@@ -72,7 +72,7 @@ export class DeviceAccessory {
     (this.serviceIn.getCharacteristic(this.platform.Characteristic.ConfiguredScenes)
       || this.serviceIn.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredScenes))
       .setProps({
-        'minValue': 0,
+        'minValue': 1,
         'maxValue': this.Config.NumOfScenes(),
         'minStep': 1,
       })
@@ -209,8 +209,20 @@ export class DeviceAccessory {
    * @param value Number of active switches
    */
   async setItemsToHandle(value: CharacteristicValue) {
-    const numItemsToHandle = value as number;
-    this.Log.debug('Set Characteristic NumScenes ->', numItemsToHandle);
+    let numItemsToHandle = value as number;
+
+    if ((numItemsToHandle > 0) && (numItemsToHandle <= this.Config.NumOfScenes())) {
+      this.Log.log('Set number of Active Switches ->', numItemsToHandle);
+    } else {
+      this.Log.warn(
+        'Set number of Active Switches ->', numItemsToHandle, '-> Out-of-Range / Value must be between 1 and', this.Config.NumOfScenes());
+      if (numItemsToHandle > this.Config.NumOfScenes()) {
+        numItemsToHandle = this.Config.NumOfScenes();
+      } else {
+        numItemsToHandle = 1;
+      }
+    }
+
     this.State.numberConfiguredScenes = numItemsToHandle;
   }
 
@@ -228,8 +240,15 @@ export class DeviceAccessory {
    * @param value Time in seconds
    */
   async setTriggerTimeout(value: CharacteristicValue) {
-    const triggerTimeout = value as number;
-    this.Log.log('Set Trigger Timeout ->', triggerTimeout);
+    let triggerTimeout = value as number;
+
+    if (triggerTimeout >= 0) {
+      this.Log.log('Set Trigger Timeout ->', triggerTimeout);
+    } else {
+      this.Log.warn(
+        'Set Trigger Timeout ->', triggerTimeout, '-> Out-of-Range / Value must be greater or equal to 0');
+      triggerTimeout = 0;
+    }
     this.State.triggerTimeout = triggerTimeout;
   }
 
