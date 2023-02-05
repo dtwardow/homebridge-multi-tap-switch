@@ -28,6 +28,12 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
 
   public readonly Config: PluginConfig;
 
+  /**
+   * Construct the Homebridge platform
+   * @param log Homebridge Logger
+   * @param config Homebridge Configuration (from config.json)
+   * @param api Homebridge API
+   */
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
@@ -55,17 +61,29 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
       {value: this.CharacteristicTriggerTimeout});
   }
 
+  /**
+   * Homebridge Accessory Configuration Callback
+   * @param accessory Accessory to previously added by this platform
+   */
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Load cached Accessory:', accessory.displayName);
 
-    // add the restored accessory to the accessories cache so we can track if it has already been registered
+    // add the restored accessory to the accessories cache, so we can track if it has already been registered
     this.accessories.push(accessory);
   }
 
+  /**
+   * Calculate the UUIDs
+   * @param name Name to use for the calculation
+   * @param serial (optional) Provide an additional number (might be obsolete in future releases)
+   */
   defineUuid(name: string | undefined, serial = 'UNDEF'): string {
     return this.api.hap.uuid.generate(name + '_' + serial);
   }
 
+  /**
+   * Discover new and existing accessories
+   */
   discoverDevices() {
     const parsedConfig = new PluginConfig(this.config);
     for (const device of parsedConfig.Devices) {

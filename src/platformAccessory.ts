@@ -29,6 +29,11 @@ export class DeviceAccessory {
 
   private Log: Logging;
 
+  /**
+   * Construct the accessory services
+   * @param platform Parent Homebridge platform
+   * @param accessory Accessory to which these services will be attached
+   */
   constructor(
     private readonly platform: MultiTapSwitchPlatform,
     private readonly accessory: PlatformAccessory,
@@ -37,16 +42,20 @@ export class DeviceAccessory {
     this.State = this.accessory.context.persistent;
 
     this.Log = new Logging(platform.log, this.Config.Name(), this.Config.isLogging());
-    this.Log.log('Initialize Accessory', this.Config.Name());
+    this.Log.log('Initialize Accessory ->', this.Config.Name());
 
-    // Set accessory information
+    /**
+     * Accessory information
+     */
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'TippyTapper')
       .setCharacteristic(this.platform.Characteristic.Model, 'SceneSwitch')
       .setCharacteristic(this.platform.Characteristic.Version, VERSION)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.UUID);
 
-
+    /**
+     * Input Service / Switch
+     */
     // Get or Create the input switch service
     this.serviceIn = this.accessory.getService(this.platform.Service.Switch)
       || this.accessory.addService(this.platform.Service.Switch);
@@ -86,12 +95,15 @@ export class DeviceAccessory {
     // Set the service name, this is what is displayed as the default name on the Home app
     this.serviceIn.setCharacteristic(this.platform.Characteristic.Name, this.Config.Name());
 
+    /**
+     * Output Service / Service Label & Stateless Programmable Switches
+     */
     // Get or Create the output service (excluding the buttons)
     this.serviceOut = this.accessory.getService(this.platform.Service.ServiceLabel)
       || this.accessory.addService(this.platform.Service.ServiceLabel);
     this.serviceOut.setCharacteristic(this.platform.Characteristic.ServiceLabelNamespace, 1);
 
-    // Create max configured number of scene buttons
+    // Create max configured number of programmable switches
     for (let i = 1; i <= this.Config.NumOfScenes(); i++) {
       this.Log.debug('Handle Scene Button -> ', i);
 
@@ -106,10 +118,11 @@ export class DeviceAccessory {
         newButton.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, i);
       }
 
+      // Push switches to an internal list for later use
       this.TriggerButtons.push(newButton);
     }
 
-    // Remove buttons, if max buttons is smaller
+    // Remove any programmable switches, that exceed the maximum of configured switches
     for (let i = this.TriggerButtons.length + 1;; i++) {
       const exButton = this.accessory.getService('Scene ' + i);
       if (exButton) {
@@ -126,7 +139,7 @@ export class DeviceAccessory {
   }
 
   /**
-   * Trigger the next event
+   * Trigger/Fire the next programmable switch event
    */
   triggerNext() {
     if (this.NextItemToTrigger >= this.State.numberConfiguredScenes) {
@@ -148,8 +161,11 @@ export class DeviceAccessory {
     this.NextItemToTrigger = 0;
   }
 
-
-  // Switch Handlers
+  /**
+   * Handle state changes of the input switch
+   * This function does all the necessary work.
+   * @param value Target switch state from Automation or manual state change
+   */
   async setOn(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
     this.SwitchOn = value as boolean;
@@ -159,7 +175,7 @@ export class DeviceAccessory {
         clearTimeout(this.SwitchResetTimer);
       }
 
-      // Start the reset timer, if paramter is greater than 0.
+      // Start the reset timer, if parameter is greater than 0.
       // Otherwise, do nothing.
       if (this.State.triggerTimeout > 0) {
         this.SwitchResetTimer = setTimeout(this.resetTrigger.bind(this), this.State.triggerTimeout * 1000);
@@ -177,6 +193,9 @@ export class DeviceAccessory {
     this.Log.debug('Set Characteristic On ->', value);
   }
 
+  /**
+   * Report state of the input switch back to HomeKit (for visualization)
+   */
   async getOn(): Promise<CharacteristicValue> {
     const isOn = this.SwitchOn;
     this.Log.debug('Get Characteristic On ->', isOn);
@@ -185,30 +204,39 @@ export class DeviceAccessory {
     return isOn;
   }
 
-  // NumScenes Handlers
+  /**
+   * Set the number of active switches.
+   * The final value is limited to the maximum configured number of programmable switches.
+   * @param value Number of active switches
+   */
   async setItemsToHandle(value: CharacteristicValue) {
     const numItemsToHandle = value as number;
     this.Log.debug('Set Characteristic NumScenes ->', numItemsToHandle);
     this.State.numberConfiguredScenes = numItemsToHandle;
-
-    //this.updatePersistentData();
   }
 
+  /**
+   * Report number of active switches back to HomeKit (for visualization)
+   */
   async getItemsToHandle(): Promise<CharacteristicValue> {
     const numItemsToHandle = this.State.numberConfiguredScenes;
-    this.Log.debug('Get Characteristic NumScenes ->', numItemsToHandle);
+    this.Log.debug('Get Number of Active Switches ->', numItemsToHandle);
     return numItemsToHandle;
   }
 
-  // TriggerTimeout Handlers
+  /**
+   * Set the timeout before resetting the trigger counter.
+   * @param value Time in seconds
+   */
   async setTriggerTimeout(value: CharacteristicValue) {
     const triggerTimeout = value as number;
     this.Log.debug('Set Characteristic TriggerTimeout ->', triggerTimeout);
     this.State.triggerTimeout = triggerTimeout;
-
-    //this.updatePersistentData();
   }
 
+  /**
+   * Report the timeout before resetting the trigger back to HomeKit (for visualization)
+   */
   async getTriggerTimeout(): Promise<CharacteristicValue> {
     const triggerTimeout = this.State.triggerTimeout;
     this.Log.debug('Get Characteristic TriggerTimeout ->', triggerTimeout);
