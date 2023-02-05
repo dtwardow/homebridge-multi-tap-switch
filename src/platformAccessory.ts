@@ -147,7 +147,7 @@ export class DeviceAccessory {
     }
 
     // Trigger Scene Button
-    this.Log.log('Trigger Scene -> ', this.NextItemToTrigger);
+    this.Log.log('Trigger Event -> ', this.NextItemToTrigger);
     this.TriggerButtons[this.NextItemToTrigger++].updateCharacteristic(this.platform.Characteristic.ProgrammableSwitchEvent, 0);
   }
 
@@ -156,8 +156,7 @@ export class DeviceAccessory {
    */
   resetTrigger() {
     this.Log.log('Reset Scene Trigger');
-    this.serviceIn.updateCharacteristic(this.platform.Characteristic.On,
-      this.SwitchOn = false);
+    this.serviceIn.updateCharacteristic(this.platform.Characteristic.On, this.SwitchOn = false);
     this.NextItemToTrigger = 0;
   }
 
@@ -190,7 +189,7 @@ export class DeviceAccessory {
       this.resetTrigger();
     }
 
-    this.Log.debug('Set Characteristic On ->', value);
+    this.Log.debug('Set Switch State ->', value);
   }
 
   /**
@@ -198,7 +197,7 @@ export class DeviceAccessory {
    */
   async getOn(): Promise<CharacteristicValue> {
     const isOn = this.SwitchOn;
-    this.Log.debug('Get Characteristic On ->', isOn);
+    this.Log.debug('Get Switch State ->', isOn);
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
     return isOn;
@@ -230,7 +229,7 @@ export class DeviceAccessory {
    */
   async setTriggerTimeout(value: CharacteristicValue) {
     const triggerTimeout = value as number;
-    this.Log.debug('Set Characteristic TriggerTimeout ->', triggerTimeout);
+    this.Log.log('Set Trigger Timeout ->', triggerTimeout);
     this.State.triggerTimeout = triggerTimeout;
   }
 
@@ -239,7 +238,7 @@ export class DeviceAccessory {
    */
   async getTriggerTimeout(): Promise<CharacteristicValue> {
     const triggerTimeout = this.State.triggerTimeout;
-    this.Log.debug('Get Characteristic TriggerTimeout ->', triggerTimeout);
+    this.Log.debug('Get Trigger Timeout ->', triggerTimeout);
     return triggerTimeout;
   }
 }
