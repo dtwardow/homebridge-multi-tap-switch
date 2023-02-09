@@ -8,6 +8,10 @@ This plugin provides a switch, which can be triggered multiple times to trigger 
 
 Actions could be everything, which can be configured within **Automations**.
 
+## History
+
+
+
 ## How it works?
 
 The plugin provides a virtual **switch** which can be triggered manually (which doesn't really make sense) or
@@ -31,23 +35,23 @@ or manually by following these instructions:
 
 The configuration allows the user to add multiple **Multi-Tap-Switches**. The following parameters are available:
 
-| Option                             | Default Value  | Characteristic (runtime configuration) | Description                                                                               |
-|------------------------------------|----------------|----------------------------------------|-------------------------------------------------------------------------------------------|
-| `name`                             | MultiTapSwitch |                                        | Name of the Platform Accessory (primarily shown in logs)                                  |
-| `devices[]`                        |                |                                        | Array of configured devices                                                               |
-| `devices[].name`                   |                |                                        | Name of the switch                                                                        |
-| `devices[].numberConfiguredScenes` | 5              | `Configured Scenes`                    | Number of **stateless** switches (cannot be changed during runtime)                       |
-| `devices[].triggerTimeout`         | 10             | `Trigger Timeout`                      | Seconds, after which the switch is reset (starting from the first **programmable** switch |
-| `devices[].resetAfterSwitchOff`    | false          |                                        | Reset the switch (like after timeout), when it is turned ```OFF```.                       |
-| `devices[].logging`                | false          |                                        | Logging of switch/trigger actions.                                                        |
+| Option                              | Default Value  | Characteristic (runtime configuration) | Description                                                                               |
+|-------------------------------------|----------------|----------------------------------------|-------------------------------------------------------------------------------------------|
+| `name`                              | MultiTapSwitch |                                        | Name of the Platform Accessory (primarily shown in logs)                                  |
+| `devices[]`                         |                |                                        | Array of configured devices                                                               |
+| `devices[].name`                    |                |                                        | Name of the switch                                                                        |
+| `devices[] .numberConfiguredScenes` | 5              | `Configured Scenes`                    | Number of **stateless** switches (cannot be changed during runtime)                       |
+| `devices[] .triggerTimeout`         | 10             | `Trigger Timeout`                      | Seconds, after which the switch is reset (starting from the first **programmable** switch |
+| `devices[] .resetAfterSwitchOff`    | false          |                                        | Reset the switch (like after timeout), when it is turned ```OFF```.                       |
+| `devices[] .logging`                | false          |                                        | Logging of switch/trigger actions.                                                        |
 
 The parameter ```triggerTimeout``` can be changed in the configuration during runtime. So, this is just the initial value.
+If the value is set to `0`, the switch will never reset. This can be also combined with the ```resetAfterSwitchOff``` parameter.
 
-The parameter ```numberConfiguredScenes``` just defines how many **programmable** switches are available. The number of
+The parameter ```numberConfiguredScenes``` just defines how many **programmable** switches are available (currently, there is no limit). The number of
 really **used** switches can configured during runtime, between 0 and the configured number.
 
-> **NOTE:** Additional parameters (also called **Characteristics**) can only be configured via 3rd-party HomeKit apps (i.e.
-> Home+, Controller for HomeKit, etc.), but in the basic Home App!
+> **NOTE:** Additional parameters (also called **Characteristics**) can only be configured via 3rd-party HomeKit apps, but in the basic Home App!
 
 So, an example **platform** plugin config will look as follows:
 
@@ -66,3 +70,9 @@ So, an example **platform** plugin config will look as follows:
       ]
     }
 ````
+
+## Contribution
+
+Contributions are always welcome. You can also use the code for own projects and adapt it to your specific needs.
+
+If you find any bugs or have ideas for optimizations or new features, feel free.
