@@ -41,7 +41,9 @@ The configuration allows the user to add multiple **Multi-Tap-Switches**. The fo
 | `devices[].resetAfterSwitchOff`    | false          |                                        | Reset the switch (like after timeout), when it is turned ```OFF```.                       |
 | `devices[].logging`                | false          |                                        | Logging of switch/trigger actions.                                                        |
 
-The parameter ```triggerTimeout``` can be changed in the configuration during runtime. So, this is just the initial value.
+The parameter ```triggerTimeout``` can be changed in the configuration during runtime. So, this is just the initial value.<br>
+> **NOTE:** If the value is out of sync from the configured value (i.e. updated via Home-App), it will not be updated on later configuration changes.
+> It must be set back to the configured value first! 
 
 The parameter ```numberConfiguredScenes``` just defines how many **programmable** switches are available. The number of
 really **used** switches can configured during runtime, between 0 and the configured number.

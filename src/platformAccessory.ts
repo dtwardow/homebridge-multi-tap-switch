@@ -81,6 +81,12 @@ export class DeviceAccessory {
       .updateValue(this.State.numberConfiguredScenes);
 
     // Register handlers for the TriggerTimeout characteristic & restore previous value
+    if (!this.State.triggerTimeoutManuallyChanged) {
+      this.State.triggerTimeout = this.Config.TriggerTimeout();
+    } else {
+      this.Log.debug('Current Trigger Timeout [' + this.State.triggerTimeout + '] differs from configured value [' +
+        this.Config.TriggerTimeout() + ']. It won\'t be updated until it\'s equal again.');
+    }
     (this.serviceIn.getCharacteristic(this.platform.Characteristic.TriggerTimeout)
        || this.serviceIn.addOptionalCharacteristic(this.platform.Characteristic.TriggerTimeout))
       .setProps({
@@ -251,6 +257,15 @@ export class DeviceAccessory {
         'Set Trigger Timeout ->', triggerTimeout, '-> Out-of-Range / Value must be greater or equal to 0');
       triggerTimeout = 0;
     }
+
+    this.State.triggerTimeoutManuallyChanged = (this.Config.TriggerTimeout() !== triggerTimeout);
+    if (!this.State.triggerTimeoutManuallyChanged) {
+      this.Log.debug('Trigger Timeout in sync with config.');
+    } else {
+      this.Log.warn('Trigger Timeout not in sync with config value [' + this.Config.TriggerTimeout() + '].');
+      this.Log.warn('It will not be updated by config changes, until it is in sync again!');
+    }
+
     this.State.triggerTimeout = triggerTimeout;
   }
 
