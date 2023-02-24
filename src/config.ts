@@ -60,6 +60,7 @@ export interface AccessoryState {
   numberConfiguredScenes: number;
   triggerTimeout: number;
   //nextSceneToTrigger: number;
+  triggerTimeoutManuallyChanged: boolean;
 }
 
 export function initializeAccessoryState(initConfig: PluginDeviceConfig | AccessoryState): AccessoryState {
@@ -67,5 +68,6 @@ export function initializeAccessoryState(initConfig: PluginDeviceConfig | Access
     numberConfiguredScenes: initConfig.numberConfiguredScenes || DEFAULT_NUM_OF_CONFIGURED_SCENES,
     triggerTimeout: initConfig.triggerTimeout || DEFAULT_TRIGGER_TIMEOUT,
     //nextSceneToTrigger: 0,
+    triggerTimeoutManuallyChanged: false,
   };
 }

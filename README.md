@@ -8,10 +8,6 @@ This plugin provides a switch, which can be triggered multiple times to trigger 
 
 Actions could be everything, which can be configured within **Automations**.
 
-## History
-
-
-
 ## How it works?
 
 The plugin provides a virtual **switch** which can be triggered manually (which doesn't really make sense) or
@@ -46,12 +42,11 @@ The configuration allows the user to add multiple **Multi-Tap-Switches**. The fo
 | `devices[] .logging`                | false          |                                        | Logging of switch/trigger actions.                                                        |
 
 The parameter ```triggerTimeout``` can be changed in the configuration during runtime. So, this is just the initial value.
-If the value is set to `0`, the switch will never reset. This can be also combined with the ```resetAfterSwitchOff``` parameter.
 
 The parameter ```numberConfiguredScenes``` just defines how many **programmable** switches are available (currently, there is no limit). The number of
 really **used** switches can configured during runtime, between 0 and the configured number.
 
-> **NOTE:** Additional parameters (also called **Characteristics**) can only be configured via 3rd-party HomeKit apps, but in the basic Home App!
+> **NOTE:** Additional parameters (also called **Characteristics**) can only be configured via 3rd-party HomeKit apps, but not in the basic Home App!
 
 So, an example **platform** plugin config will look as follows:
 
