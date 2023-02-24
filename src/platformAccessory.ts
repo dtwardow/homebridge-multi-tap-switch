@@ -49,9 +49,9 @@ export class DeviceAccessory {
      */
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'HB/dtw')
-      .setCharacteristic(this.platform.Characteristic.Model, 'SceneSwitch')
+      .setCharacteristic(this.platform.Characteristic.Model, 'Multi-Tap-Switch')
       .setCharacteristic(this.platform.Characteristic.Version, VERSION)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.UUID);
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.Config.Name());
 
     /**
      * Input Service / Switch
@@ -115,7 +115,9 @@ export class DeviceAccessory {
         this.serviceOut.addLinkedService(newButton);
         newButton.getCharacteristic(this.platform.Characteristic.ProgrammableSwitchEvent)
           .setProps(this.singleButtonEvents);
-        newButton.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, i);
+        newButton
+          .setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, i)
+          .setCharacteristic(this.platform.Characteristic.Name, 'Scene ' + i);
       }
 
       // Push switches to an internal list for later use
