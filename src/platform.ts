@@ -78,13 +78,15 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
    * @param serial (optional) Provide an additional number (might be obsolete in future releases)
    */
   defineUuid(name: string | undefined, serial = 'UNDEF'): string {
-    return this.api.hap.uuid.generate(name + '_' + serial);
+    return this.api.hap.uuid.generate(PLATFORM_NAME + '_' + name + '_' + serial);
   }
 
   /**
    * Discover new and existing accessories
    */
   discoverDevices() {
+    const knownUuids: string[] = [];
+
     const parsedConfig = new PluginConfig(this.config);
     for (const device of parsedConfig.Devices) {
       const uuid = this.defineUuid(device.name, '0');
@@ -100,7 +102,7 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         // existingAccessory.context.device = device;
         // this.api.updatePlatformAccessories([existingAccessory]);
-        if (existingAccessory.context.config !== device) {
+        if (JSON.stringify(existingAccessory.context.config) !== JSON.stringify(device)) {
           this.log.debug('Update Accessory ->', device.name);
           existingAccessory.context.config = device;
           this.api.updatePlatformAccessories([existingAccessory]);
@@ -109,6 +111,8 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
         // Create the accessory handler for the restored accessory
         // This is imported from `platformAccessory.ts`
         new DeviceAccessory(this, existingAccessory);
+
+        knownUuids.push(uuid);
       } else {
         // Accessory does not yet exist, so we need to create it
         this.log.info('Add Device ->', device.name, '/',
@@ -128,6 +132,14 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      }
+    }
+
+    // Unregister unused accessories
+    for (const device of this.accessories) {
+      if (!knownUuids.find(id => id === device.UUID)) {
+        this.log.info('Remove unused device ->', device.displayName, '/', device.UUID);
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [device]);
       }
     }
   }
