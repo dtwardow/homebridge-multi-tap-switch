@@ -1,9 +1,9 @@
 import { API, Characteristic, Formats, Perms, Service } from 'homebridge';
 
-const DISPLAY_NAME = 'Configured Scenes';
-const UUID = 'A8E3F4DF-5E5D-6A7F-8FA7-A22FA5AE9F53';
+const DISPLAY_NAME = 'Current Scene';
+const UUID = '290E9D33-0EFC-4640-891E-CC25AAD740EA';
 
-export function attachCharacteristic_ConfiguredScenes(target: Service, api: API): Characteristic {
+export function attachCharacteristic_CurrentScene(target: Service, api: API): Characteristic {
   let result: Characteristic;
 
   if (target.testCharacteristic(DISPLAY_NAME)) {

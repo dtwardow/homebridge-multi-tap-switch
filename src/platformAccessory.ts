@@ -1,8 +1,11 @@
-import {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
-import {MultiTapSwitchPlatform} from './platform';
+import {CharacteristicValue, PlatformAccessory, Service, API} from 'homebridge';
+import MultiTapSwitchPlatform from './platform';
 import {AccessoryState, DeviceConfig} from './config';
 import {Logging} from './helper/logger';
 import {VERSION} from './settings';
+import {attachCharacteristic_ConfiguredScenes} from './types/characteristicConfiguredScenes';
+import {attachCharacteristic_TriggerTimeout} from './types/characteristicTimeout';
+import {attachCharacteristic_CurrentScene} from './types/characteristicCurrentScene';
 
 /**
  * Platform Accessory
@@ -11,33 +14,37 @@ export class DeviceAccessory {
   private serviceIn: Service;
   private serviceOut: Service;
 
-  private readonly singleButtonEvents = {
-    minValue: this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
-    maxValue: this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
-    validValues: [
-      this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
-    ],
-  };
+  private readonly singleButtonEvents;
 
   private readonly State: AccessoryState;
   private readonly Config: DeviceConfig;
 
   private readonly TriggerButtons: Service[] = [];
   private SwitchResetTimer: NodeJS.Timeout | undefined;
-  private SwitchOn = false;
-  private NextItemToTrigger = 0;
+  private SwitchOn: boolean = false;
+  private NextItemToTrigger: number = 0;
 
   private Log: Logging;
 
   /**
    * Construct the accessory services
    * @param platform Parent Homebridge platform
+   * @param api Parent platform API
    * @param accessory Accessory to which these services will be attached
    */
   constructor(
     private readonly platform: MultiTapSwitchPlatform,
+    private readonly api: API,
     private readonly accessory: PlatformAccessory,
   ) {
+    this.singleButtonEvents = {
+      minValue: this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+      maxValue: this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+      validValues: [
+        this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+      ],
+    };
+
     this.Config = new DeviceConfig(accessory.context.config);
     this.State = this.accessory.context.persistent;
 
@@ -69,8 +76,7 @@ export class DeviceAccessory {
     if (this.State.numberConfiguredScenes > this.Config.NumOfScenes()) {
       this.State.numberConfiguredScenes = this.Config.NumOfScenes();
     }
-    (this.serviceIn.getCharacteristic(this.platform.Characteristic.ConfiguredScenes)
-      || this.serviceIn.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredScenes))
+    attachCharacteristic_ConfiguredScenes(this.serviceIn, this.api)
       .setProps({
         'minValue': 1,
         'maxValue': this.Config.NumOfScenes(),
@@ -87,8 +93,7 @@ export class DeviceAccessory {
       this.Log.debug('Current Trigger Timeout [' + this.State.triggerTimeout + '] differs from configured value [' +
         this.Config.TriggerTimeout() + ']. It won\'t be updated until it\'s equal again.');
     }
-    (this.serviceIn.getCharacteristic(this.platform.Characteristic.TriggerTimeout)
-       || this.serviceIn.addOptionalCharacteristic(this.platform.Characteristic.TriggerTimeout))
+    attachCharacteristic_TriggerTimeout(this.serviceIn, this.api)
       .setProps({
         'minValue': 0,
         'maxValue': 30,
@@ -97,6 +102,17 @@ export class DeviceAccessory {
       .onSet(this.setTriggerTimeout.bind(this))
       .onGet(this.getTriggerTimeout.bind(this))
       .updateValue(this.State.triggerTimeout);
+
+    // Register handlers for the CurrentScene characteristic & restore previous value
+    attachCharacteristic_CurrentScene(this.serviceIn, this.api)
+      .setProps({
+        'minValue': 1,
+        'maxValue': this.Config.NumOfScenes(),
+        'minStep': 1,
+      })
+      .onSet(this.setCurrentScene.bind(this))
+      .onGet(this.getCurrentScene.bind(this))
+      .updateValue(this.NextItemToTrigger);
 
     // Set the service name, this is what is displayed as the default name on the Home app
     this.serviceIn.setCharacteristic(this.platform.Characteristic.Name, this.Config.Name());
@@ -276,5 +292,38 @@ export class DeviceAccessory {
     const triggerTimeout = this.State.triggerTimeout;
     this.Log.debug('Get Trigger Timeout ->', triggerTimeout);
     return triggerTimeout;
+  }
+
+  /**
+   * Set the number of active switches.
+   * The final value is limited to the maximum configured number of programmable switches.
+   * @param value Number of active switches
+   */
+  async setCurrentScene(value: CharacteristicValue) {
+    let currentScene = value as number;
+
+    if ((currentScene > 0) && (currentScene <= this.Config.NumOfScenes())) {
+      this.Log.log('Set current active scene ->', currentScene);
+    } else {
+      this.Log.warn(
+        'Set current scene ->', currentScene, '-> Out-of-Range / Value must be between 1 and', this.Config.NumOfScenes());
+      if (currentScene > this.Config.NumOfScenes()) {
+        currentScene = this.Config.NumOfScenes();
+      } else {
+        currentScene = 1;
+      }
+    }
+
+    // value must be corrected by one, because it's used as array index
+    this.NextItemToTrigger = currentScene - 1;
+  }
+
+  /**
+   * Report number of active switches back to HomeKit (for visualization)
+   */
+  async getCurrentScene(): Promise<CharacteristicValue> {
+    const currentScene = this.NextItemToTrigger + 1;
+    this.Log.debug('Get Number of current scene ->', currentScene);
+    return currentScene;
   }
 }

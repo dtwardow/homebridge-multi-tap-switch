@@ -4,24 +4,14 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { DeviceAccessory } from './platformAccessory';
 
 // Necessary definitions for custom characteristics!
-import ConfiguredScenes from './types/characteristicConfiguredScenes';
-let IConfiguredScenes;
 import {initializeAccessoryState, PluginConfig} from './config';
-let ITriggerTimeout;
-import TriggerTimeout from './types/characteristicTimeout';
 
 /**
  * HomebridgePlatform
  */
-export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic:
-    typeof Characteristic &
-    typeof IConfiguredScenes &
-    typeof ITriggerTimeout;
-
-  private readonly CharacteristicConfiguredScenes;
-  private readonly CharacteristicTriggerTimeout;
+class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
+  public readonly Service: typeof Service;
+  public readonly Characteristic: typeof Characteristic;
 
   // Track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
@@ -40,25 +30,15 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
     public readonly api: API,
   ) {
     this.Config = new PluginConfig(this.config);
+    this.Service = api.hap.Service;
+    this.Characteristic = api.hap.Characteristic;
 
     this.log.debug('Finished initializing platform:', this.Config.Name);
-
-    this.CharacteristicConfiguredScenes = ConfiguredScenes(this.api);
-    IConfiguredScenes = this.CharacteristicConfiguredScenes;
-    this.CharacteristicTriggerTimeout = TriggerTimeout(this.api);
-    ITriggerTimeout = this.CharacteristicTriggerTimeout;
 
     this.api.on('didFinishLaunching', () => {
       log.debug('Discover/Register Devices ...');
       this.discoverDevices();
     });
-
-    this.Characteristic = Object.defineProperty(this.api.hap.Characteristic,
-      'ConfiguredScenes',
-      {value: this.CharacteristicConfiguredScenes});
-    this.Characteristic = Object.defineProperty(this.api.hap.Characteristic,
-      'TriggerTimeout',
-      {value: this.CharacteristicTriggerTimeout});
   }
 
   /**
@@ -110,7 +90,7 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
 
         // Create the accessory handler for the restored accessory
         // This is imported from `platformAccessory.ts`
-        new DeviceAccessory(this, existingAccessory);
+        new DeviceAccessory(this, this.api, existingAccessory);
 
         knownUuids.push(uuid);
       } else {
@@ -128,7 +108,7 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
 
         // Create the accessory handler for the new  accessory
         // This is imported from `platformAccessory.ts`
-        new DeviceAccessory(this, accessory);
+        new DeviceAccessory(this, this.api, accessory);
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -144,3 +124,5 @@ export class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
     }
   }
 }
+
+export default MultiTapSwitchPlatform

@@ -1,22 +1,23 @@
-import { Formats, Perms } from 'homebridge';
+import { API, Characteristic, Formats, Perms, Service } from 'homebridge';
 
-export = (homebridge) => {
-  const CustomCharacteristic = homebridge.hap.Characteristic;
-  const characteristicUUID = 'E2C19A02-1D2F-F592-A2BF-BF920014FB18';
+const DISPLAY_NAME = 'Trigger Timeout';
+const UUID = 'E2C19A02-1D2F-F592-A2BF-BF920014FB18';
 
-  return class TriggerTimeout extends CustomCharacteristic {
-    public static readonly UUID: string = characteristicUUID;
+export function attachCharacteristic_TriggerTimeout(target: Service, api: API): Characteristic {
+  let result: Characteristic;
 
-    constructor() {
-      super('Trigger Timeout', TriggerTimeout.UUID, {
-        format: Formats.UINT16,
-        //unit: '',
-        minValue: 0,
-        maxValue: 60,
-        minStep: 1,
-        perms: [Perms.PAIRED_WRITE, Perms.PAIRED_READ, Perms.NOTIFY],
-      });
-      this.value = this.getDefaultValue();
-    }
-  };
-};
+  if (target.testCharacteristic(DISPLAY_NAME)) {
+    result = target.getCharacteristic(DISPLAY_NAME)!; // Already tested it exists
+  } else {
+    result = target.addCharacteristic(new api.hap.Characteristic(DISPLAY_NAME, UUID, {
+      format: Formats.UINT16,
+      //unit: '',
+      minValue: 0,
+      maxValue: 60,
+      minStep: 1,
+      perms: [Perms.PAIRED_WRITE, Perms.PAIRED_READ, Perms.NOTIFY],
+    }));
+  }
+
+  return result;
+}
