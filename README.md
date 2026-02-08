@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150" alt="Homebridge">
+<img src="https://github.com/homebridge/branding/blob/latest/logos/homebridge-color-round-stylized.png" width="150" alt="Homebridge">
 </p>
 
 # Homebridge Multi-Tap-Switch
