@@ -1,4 +1,4 @@
-import {PlatformConfig} from 'homebridge';
+import { PlatformConfig } from 'homebridge';
 
 const DEFAULT_NUM_OF_CONFIGURED_SCENES = 5;
 const DEFAULT_TRIGGER_TIMEOUT = 10;
@@ -59,7 +59,6 @@ export class DeviceConfig {
 export interface AccessoryState {
   numberConfiguredScenes: number;
   triggerTimeout: number;
-  //nextSceneToTrigger: number;
   triggerTimeoutManuallyChanged: boolean;
 }
 
@@ -67,7 +66,6 @@ export function initializeAccessoryState(initConfig: PluginDeviceConfig | Access
   return {
     numberConfiguredScenes: initConfig.numberConfiguredScenes || DEFAULT_NUM_OF_CONFIGURED_SCENES,
     triggerTimeout: initConfig.triggerTimeout || DEFAULT_TRIGGER_TIMEOUT,
-    //nextSceneToTrigger: 0,
     triggerTimeoutManuallyChanged: false,
   };
 }
