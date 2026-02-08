@@ -1,11 +1,11 @@
-import {CharacteristicValue, PlatformAccessory, Service, API} from 'homebridge';
+import { CharacteristicValue, PlatformAccessory, Service, API } from 'homebridge';
 import MultiTapSwitchPlatform from './platform';
-import {AccessoryState, DeviceConfig} from './config';
-import {Logging} from './helper/logger';
-import {VERSION} from './settings';
-import {attachCharacteristic_ConfiguredScenes} from './types/characteristicConfiguredScenes';
-import {attachCharacteristic_TriggerTimeout} from './types/characteristicTimeout';
-import {attachCharacteristic_CurrentScene} from './types/characteristicCurrentScene';
+import { AccessoryState, DeviceConfig } from './config';
+import { Logging } from './helper/logger';
+import { VERSION } from './settings';
+import { attachCharacteristic_ConfiguredScenes } from './types/characteristicConfiguredScenes';
+import { attachCharacteristic_TriggerTimeout } from './types/characteristicTimeout';
+import { attachCharacteristic_CurrentScene } from './types/characteristicCurrentScene';
 
 /**
  * Platform Accessory

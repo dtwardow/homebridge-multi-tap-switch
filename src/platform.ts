@@ -4,7 +4,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { DeviceAccessory } from './platformAccessory';
 
 // Necessary definitions for custom characteristics!
-import {initializeAccessoryState, PluginConfig} from './config';
+import { initializeAccessoryState, PluginConfig } from './config';
 
 /**
  * HomebridgePlatform
@@ -125,4 +125,4 @@ class MultiTapSwitchPlatform implements DynamicPlatformPlugin {
   }
 }
 
-export default MultiTapSwitchPlatform
+export default MultiTapSwitchPlatform;
