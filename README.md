@@ -1,4 +1,4 @@
-<p align="center">
+<p>
 <img src="https://github.com/homebridge/branding/blob/latest/logos/homebridge-color-round-stylized.png" width="150" alt="Homebridge">
 </p>
 
