@@ -43,12 +43,19 @@
               "required": true,
               "default": 10,
               "minimum": 0,
-              "maximum": 30
+              "maximum": 60
             },
             "resetAfterSwitchOff": {
-              "title": "Reset when switch turned `Off`",
+              "title": "Reset when switch is turned `Off`",
               "type": "boolean",
-              "description": "Reset the switch and trigger index, when the trigger switch is turned <code>Off</code> (independent from timeout)",
+              "description": "Reset the switch and trigger index, when the stateless switch is turned <code>Off</code>",
+              "required": true,
+              "default": false
+            },
+            "triggerSceneAfterSwitchOff": {
+              "title": "Trigger scene, when switch is turned `Off`",
+              "type": "boolean",
+              "description": "Trigger scene <code>0</code> (so called <code>Off</code>-scene), when the stateless switch is turned <code>Off</code> (independent from timeout).<br><b>Note:</b> If this is enabled, rotation starts from switch <code>1</code>, otherwise <code>0</code>.",
               "required": true,
               "default": false
             },
@@ -57,6 +64,15 @@
               "type": "boolean",
               "required": true,
               "default": false
+            },
+            "debounceTimerMs": {
+              "title": "Debounce Timer (in milliseconds)",
+              "type": "number",
+              "description": "Time to wait before the next switch trigger is accepted.<br>Only change this value, if you encounter problems using the HomeKit slider in the Home App",
+              "required": true,
+              "minimum": 10,
+              "maximum": 1000,
+              "default": 150
             }
           }
         }
