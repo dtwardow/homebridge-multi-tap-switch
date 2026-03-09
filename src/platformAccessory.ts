@@ -6,6 +6,7 @@ import { VERSION } from './settings';
 import { attachCharacteristic_ConfiguredScenes } from './types/characteristicConfiguredScenes';
 import { attachCharacteristic_TriggerTimeout } from './types/characteristicTimeout';
 import { attachCharacteristic_CurrentScene } from './types/characteristicCurrentScene';
+import TimeoutHandler from './helper/timeoutHandler';
 
 /**
  * Platform Accessory
@@ -23,6 +24,7 @@ export class DeviceAccessory {
   private SwitchResetTimer: NodeJS.Timeout | undefined;
   private SwitchOn: boolean = false;
   private NextItemToTrigger: number = 0;
+  private LastTriggerReceived: TimeoutHandler;
 
   private Log: Logging;
 
@@ -50,6 +52,8 @@ export class DeviceAccessory {
 
     this.Log = new Logging(platform.log, this.Config.Name(), this.Config.isLogging());
     this.Log.log('Initialize Accessory ->', this.Config.Name());
+
+    this.LastTriggerReceived = new TimeoutHandler(this.Config.DebounceTimeoutMs(), this.Log);
 
     /**
      * Accessory information
@@ -106,13 +110,13 @@ export class DeviceAccessory {
     // Register handlers for the CurrentScene characteristic & restore previous value
     attachCharacteristic_CurrentScene(this.serviceIn, this.api)
       .setProps({
-        'minValue': 1,
+        'minValue': 0,
         'maxValue': this.Config.NumOfScenes(),
         'minStep': 1,
       })
       .onSet(this.setCurrentScene.bind(this))
       .onGet(this.getCurrentScene.bind(this))
-      .updateValue(this.NextItemToTrigger);
+      .updateValue(this.NextItemToTrigger = this.Config.FirstTriggerScene());
 
     // Set the service name, this is what is displayed as the default name on the Home app
     this.serviceIn.setCharacteristic(this.platform.Characteristic.Name, this.Config.Name());
@@ -165,14 +169,13 @@ export class DeviceAccessory {
   /**
    * Trigger/Fire the next programmable switch event
    */
-  triggerNext() {
-    if (this.NextItemToTrigger >= this.State.numberConfiguredScenes) {
-      this.NextItemToTrigger = 0;
+  trigger(index: number) {
+    if ((index >= 0) && (index < this.State.numberConfiguredScenes)) {
+      this.Log.log('Trigger Event -> ', index);
+      this.TriggerButtons[index].updateCharacteristic(this.platform.Characteristic.ProgrammableSwitchEvent, 0);
+    } else {
+      this.Log.error('Trigger Event -> Index ', index, ' out of bounds (min = 0, max = ', this.State.numberConfiguredScenes - 1, ')');
     }
-
-    // Trigger Scene Button
-    this.Log.log('Trigger Event -> ', this.NextItemToTrigger);
-    this.TriggerButtons[this.NextItemToTrigger++].updateCharacteristic(this.platform.Characteristic.ProgrammableSwitchEvent, 0);
   }
 
   /**
@@ -181,8 +184,12 @@ export class DeviceAccessory {
   resetTrigger() {
     this.Log.log('Reset Scene Trigger');
     this.serviceIn.updateCharacteristic(this.platform.Characteristic.On, this.SwitchOn = false);
-    this.NextItemToTrigger = 0;
+    this.NextItemToTrigger = this.Config.FirstTriggerScene();
   }
+
+  // =====================
+  // = Handler Functions =
+  // =====================
 
   /**
    * Handle state changes of the input switch
@@ -190,30 +197,46 @@ export class DeviceAccessory {
    * @param value Target switch state from Automation or manual state change
    */
   async setOn(value: CharacteristicValue) {
-    // implement your own code to turn your device on/off
-    this.SwitchOn = value as boolean;
+    // Check if debounce timer has elapsed. If not, ignore the command.
+    if (this.LastTriggerReceived.elapsedAndTrigger()) {
+      this.SwitchOn = value as boolean;
 
-    if (this.SwitchOn) {
-      if (this.SwitchResetTimer) {
-        clearTimeout(this.SwitchResetTimer);
+      if (this.SwitchOn) { // Switch is set to 'ON'
+        // Disable an active reset timer, before starting a new one.
+        if (this.SwitchResetTimer) {
+          clearTimeout(this.SwitchResetTimer);
+        }
+
+        // Start the reset timer, if parameter is greater than 0.
+        // Otherwise, do nothing.
+        if (this.State.triggerTimeout > 0) {
+          this.SwitchResetTimer = setTimeout(this.resetTrigger.bind(this), this.State.triggerTimeout * 1000);
+        }
+
+        // Determine next item to trigger
+        if (this.NextItemToTrigger >= this.State.numberConfiguredScenes) {
+          this.NextItemToTrigger = this.Config.FirstTriggerScene();
+        }
+        // Trigger Switch
+        this.trigger(this.NextItemToTrigger++);
+      } else { // Switch is set to 'OFF'
+        // If configured: Disable any active reset timer, when the switch is manually turned off
+        if (this.Config.isResetWhenOff()) {
+          if (this.SwitchResetTimer) {
+            clearTimeout(this.SwitchResetTimer);
+          }
+          this.resetTrigger();
+        }
+
+        // If configured: Trigger stateless switch / scene when manually switched off
+        if (this.Config.isTriggerSceneWhenOff()) {
+          // Trigger scene 0
+          this.trigger(this.Config.TriggerOffSceneIndex());
+        }
       }
 
-      // Start the reset timer, if parameter is greater than 0.
-      // Otherwise, do nothing.
-      if (this.State.triggerTimeout > 0) {
-        this.SwitchResetTimer = setTimeout(this.resetTrigger.bind(this), this.State.triggerTimeout * 1000);
-      }
-
-      // Trigger Scene
-      this.triggerNext();
-    } else if (this.Config.isResetWhenOff() && !this.SwitchOn) {
-      if (this.SwitchResetTimer) {
-        clearTimeout(this.SwitchResetTimer);
-      }
-      this.resetTrigger();
+      this.Log.debug('Set Switch State ->', value);
     }
-
-    this.Log.debug('Set Switch State ->', value);
   }
 
   /**
